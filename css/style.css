@@ -1,0 +1,149 @@
+/* Estilos Gerais */
+:root {
+    --primary-color: #333333;
+    --secondary-color: #666666;
+    --accent-color: #888888;
+    --background-color: #ffffff;
+    --text-color: #222222;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 1rem;
+}
+
+/* Navegação */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 1rem 0;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.nav-link {
+    color: var(--secondary-color);
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+}
+
+/* Seção Hero */
+.hero {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                url('https://source.unsplash.com/1920x1080/?photography');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding-top: 60px;
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Seção de Serviços */
+.services {
+    padding: 5rem 0;
+    background-color: #f8f9fa;
+}
+
+.service-card {
+    padding: 2rem;
+    text-align: center;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    margin-bottom: 2rem;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+}
+
+.service-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* Seção do Carrossel */
+.carousel-section {
+    padding: 5rem 0;
+    background-color: #ffffff;
+}
+
+.carousel-item img {
+    height: 60vh;
+    object-fit: cover;
+}
+
+/* Rodapé */
+footer {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 3rem 0;
+    margin-top: 3rem;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: var(--accent-color);
+}
+
+/* Design Responsivo */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero p {
+        font-size: 1.2rem;
+    }
+    
+    .carousel-item img {
+        height: 40vh;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+}

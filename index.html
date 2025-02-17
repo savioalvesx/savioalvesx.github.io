@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Alves</title>
+    <link rel="icon" type="image/x-icon" href="img/icon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <span>Studio Alves</span>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="ms-2">
+                    <path d="M12 5C9.23858 5 7 7.23858 7 10C7 12.7614 9.23858 15 12 15C14.7614 15 17 12.7614 17 10C17 7.23858 14.7614 5 12 5ZM12 13C10.3431 13 9 11.6569 9 10C9 8.34315 10.3431 7 12 7C13.6569 7 15 8.34315 15 10C15 11.6569 13.6569 13 12 13Z" fill="black"/>
+                    <path d="M4 6H8L10 4H14L16 6H20C21.1 6 22 6.9 22 8V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V8C2 6.9 2.9 6 4 6ZM4 8V18H20V8H4Z" fill="black"/>
+                </svg>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="portfolio.html">Portfolio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contato.html">Contato</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+
+    <section id="home" class="hero">
+        <div class="container">
+            <h1>Capturando Momentos Especiais</h1>
+            <p>Fotografia profissional para suas memórias mais preciosas</p>
+        </div>
+    </section>
+
+    <section class="services">
+        <div class="container">
+            <h2>Nossos Serviços</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="service-card">
+                        <i class="fas fa-camera service-icon"></i>
+                        <h3>Retratos</h3>
+                        <p>Capture sua essência em fotos profissionais</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="service-card">
+                        <i class="fas fa-image service-icon"></i>
+                        <h3>Eventos</h3>
+                        <p>Documentando seus momentos especiais</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="service-card">
+                        <i class="fas fa-building service-icon"></i>
+                        <h3>Comercial</h3>
+                        <p>Fotografia profissional para seu negócio</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="carousel-section">
+        <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="img/foto1.jpg" class="d-block w-100" alt="Fotografia 1">
+                </div>
+                <div class="carousel-item">
+                    <img src="img/foto2.jpg" class="d-block w-100" alt="Fotografia 2">
+                </div>
+                <div class="carousel-item">
+                    <img src="img/foto3.jpg" class="d-block w-100" alt="Fotografia 3">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h4>Studio Alves</h4>
+                    <p>Capturando momentos especiais.</p>
+                </div>
+                <div class="col-md-4">
+                    <h4>Links Rápidos</h4>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="portfolio.html">Portfolio</a></li>
+                        <li><a href="contato.html">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h4>Contato</h4>
+                    <p>Email: contato@studioalves.com</p>
+                    <p>Tel: (68) 99999-9999</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
