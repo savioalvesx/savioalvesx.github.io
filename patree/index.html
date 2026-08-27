@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>PATree - Gestão de Patrimônio</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <meta name="theme-color" content="#059669" />
+  <meta name="description" content="Software móvel de gestão de patrimônio, inventário e controle de ativos." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+
+  <!-- App Wrapper Container -->
+  <div id="app-container">
+    
+    <!-- Desktop Emulation Top Header -->
+    <div class="desktop-device-header">
+      <span>PATree Enterprise</span>
+    </div>
+
+    <!-- Top App Bar -->
+    <header class="top-nav">
+      <div class="brand-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span>PATree</span>
+      </div>
+
+      <div class="top-actions">
+        <!-- Theme Toggle -->
+        <button id="btn-theme-toggle" class="btn btn-icon btn-sm" title="Alternar Modo Escuro/Claro">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+
+        <!-- Current User Badge -->
+        <div class="user-badge-button" onclick="app.navigate('users')" title="Perfil do Administrador">
+          <div class="user-avatar" id="top-user-avatar">AD</div>
+          <span class="user-badge-name" id="top-user-name">Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content Area -->
+    <main id="main-content">
+      
+      <!-- ================= 1. SCREEN: DASHBOARD ================= -->
+      <section id="screen-dashboard" class="screen active">
+        <div class="screen-title">
+          <span>Visão Geral</span>
+          <button class="btn btn-secondary btn-sm" onclick="window.PATreeExporter.exportToCSV()" title="Exportar para CSV">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Exportar CSV
+          </button>
+        </div>
+        <p class="screen-subtitle">Painel de controle patrimonial</p>
+
+        <!-- Hero Financial Stat Card -->
+        <div class="stat-card stat-hero">
+          <div class="stat-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            Valor Total de Aquisição
+          </div>
+          <div class="stat-value" id="dash-val-total">R$ 0,00</div>
+          <div class="stat-sub">
+            Valor contábil atual (depreciado): <b id="dash-val-current">R$ 0,00</b>
+          </div>
+        </div>
+
+        <!-- Secondary KPIs -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+              Total de Ativos
+            </div>
+            <div class="stat-value" id="dash-count-assets">0</div>
+            <div class="stat-sub">Itens registrados</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+              Em Manutenção
+            </div>
+            <div class="stat-value" id="dash-count-maint" style="color: var(--status-warning);">0</div>
+            <div class="stat-sub">Em assistência</div>
+          </div>
+        </div>
+
+        <!-- Quick Action Shortcuts -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;">
+          <button class="btn btn-secondary" style="flex-direction: column; padding: 10px 4px; font-size: 0.72rem; gap: 4px;" onclick="app.openNewAssetModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Novo Ativo</span>
+          </button>
+          <button class="btn btn-secondary" style="flex-direction: column; padding: 10px 4px; font-size: 0.72rem; gap: 4px;" onclick="app.navigate('scanner')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Scanner</span>
+          </button>
+          <button class="btn btn-secondary" style="flex-direction: column; padding: 10px 4px; font-size: 0.72rem; gap: 4px;" onclick="app.openNewSectorModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <span>Novo Setor</span>
+          </button>
+          <button class="btn btn-secondary" style="flex-direction: column; padding: 10px 4px; font-size: 0.72rem; gap: 4px;" onclick="window.PATreeExporter.printInventoryReport()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Relatório</span>
+          </button>
+        </div>
+
+        <!-- Sector Distribution Card -->
+        <div class="clean-card" style="padding: 14px; margin-bottom: 16px;">
+          <div style="font-size: 0.78rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between;">
+            <span>Distribuição por Setor</span>
+            <a href="javascript:void(0)" onclick="app.navigate('sectors')" style="color: var(--primary); text-decoration: none; font-size: 0.72rem;">Ver Todos →</a>
+          </div>
+          <div id="dash-sectors-breakdown"></div>
+        </div>
+
+        <!-- Recent Assets Section -->
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="font-size: 0.95rem;">Últimos Ativos</h3>
+            <a href="javascript:void(0)" onclick="app.navigate('assets')" style="color: var(--primary); text-decoration: none; font-size: 0.75rem; font-weight: 500;">Ver Lista →</a>
+          </div>
+          <div id="dash-recent-assets" class="asset-list"></div>
+        </div>
+
+        <!-- Recent Movements Timeline -->
+        <div class="clean-card" style="padding: 14px;">
+          <h3 style="font-size: 0.95rem; margin-bottom: 10px;">Movimentações Recentes</h3>
+          <div id="dash-recent-movements" class="timeline-list"></div>
+        </div>
+      </section>
+
+      <!-- ================= 2. SCREEN: ATIVOS / ASSETS ================= -->
+      <section id="screen-assets" class="screen">
+        <div class="screen-title">
+          <span>Ativos</span>
+          <span class="asset-tag-badge" id="assets-count-badge">0 itens</span>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-box">
+          <div class="search-input-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="asset-search-input" class="search-input" placeholder="Buscar por tombamento, nome, série..." />
+          </div>
+
+          <!-- Category Chips -->
+          <div class="filter-chips-container">
+            <button class="filter-chip active" data-category="all">Todos</button>
+            <button class="filter-chip" data-category="ti">TI & Informática</button>
+            <button class="filter-chip" data-category="mob">Mobiliário</button>
+            <button class="filter-chip" data-category="ind">Máquinas & Indústria</button>
+            <button class="filter-chip" data-category="eletro">Eletrônicos</button>
+            <button class="filter-chip" data-category="clima">Climatização</button>
+          </div>
+
+          <!-- Advanced Filters Row -->
+          <div class="form-row">
+            <select id="filter-sector-select" class="form-select" style="font-size: 0.78rem; padding: 6px 8px;">
+              <option value="all">Todos os Setores</option>
+              <option value="sec_ti">TI</option>
+              <option value="sec_adm">Administrativo</option>
+              <option value="sec_fab">Operações</option>
+              <option value="sec_mkt">Marketing</option>
+            </select>
+            <select id="filter-status-select" class="form-select" style="font-size: 0.78rem; padding: 6px 8px;">
+              <option value="all">Todos os Status</option>
+              <option value="Em Uso">Em Uso</option>
+              <option value="Em Estoque">Em Estoque</option>
+              <option value="Em Manutenção">Em Manutenção</option>
+              <option value="Baixado">Baixado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Asset List Container -->
+        <div id="assets-list-container" class="asset-list"></div>
+
+        <!-- Empty State -->
+        <div id="assets-empty-state" style="display: none; text-align: center; padding: 36px 16px;">
+          <h3 style="font-size: 1rem;">Nenhum ativo encontrado</h3>
+          <p class="text-muted" style="font-size: 0.8rem; margin: 4px 0 12px;">Ajuste os filtros de busca ou cadastre um novo item.</p>
+          <button class="btn btn-primary btn-sm" onclick="app.openNewAssetModal()">Novo Ativo</button>
+        </div>
+      </section>
+
+      <!-- ================= 3. SCREEN: DETALHE DO ATIVO ================= -->
+      <section id="screen-asset-detail" class="screen">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <button class="btn btn-icon btn-sm" onclick="app.navigate('assets')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <h2 style="font-size: 1.1rem;">Ficha do Ativo</h2>
+        </div>
+
+        <div id="asset-detail-content"></div>
+      </section>
+
+      <!-- ================= 4. SCREEN: SETORES ================= -->
+      <section id="screen-sectors" class="screen">
+        <div class="screen-title">
+          <span>Setores</span>
+          <button class="btn btn-primary btn-sm" onclick="app.openNewSectorModal()">
+            Novo Setor
+          </button>
+        </div>
+        <p class="screen-subtitle">Alocação de departamentos e custos</p>
+
+        <div id="sectors-list-container" class="sectors-grid"></div>
+      </section>
+
+      <!-- ================= 5. SCREEN: SCANNER QR CODE ================= -->
+      <section id="screen-scanner" class="screen">
+        <div class="screen-title">
+          <span>Scanner de Patrimônio</span>
+        </div>
+        <p class="screen-subtitle">Posicione a etiqueta no centro do quadro</p>
+
+        <div class="camera-viewfinder-box">
+          <video id="scanner-video-feed" class="camera-video-elem" autoplay playsinline muted></video>
+          <div class="scanner-target-reticle"></div>
+        </div>
+
+        <div id="scanner-result-box" class="clean-card" style="display: none; padding: 12px; margin-top: 12px; border-left: 3px solid var(--status-warning);">
+          <div id="scanner-result-text" style="font-weight: 600; font-size: 0.85rem;"></div>
+        </div>
+
+        <div class="clean-card" style="padding: 12px; margin-top: 14px;">
+          <div class="form-label">Buscar código de tombamento manual:</div>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="scanner-manual-input" class="form-input" placeholder="Ex: PAT-001042" style="text-transform: uppercase;" />
+            <button id="scanner-manual-btn" class="btn btn-primary btn-sm">Buscar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. SCREEN: PERFIL DO ADMINISTRADOR & AJUSTES ================= -->
+      <section id="screen-users" class="screen">
+        <div class="screen-title">
+          <span>Perfil do Administrador</span>
+        </div>
+        <p class="screen-subtitle">Conta administrativa e manutenção do sistema</p>
+
+        <div id="users-list-container"></div>
+
+        <div class="clean-card" style="padding: 14px; margin-top: 16px;">
+          <h4 style="font-size: 0.88rem; margin-bottom: 6px;">Manutenção do Sistema</h4>
+          <p class="text-muted" style="font-size: 0.78rem; margin-bottom: 12px;">
+            Exportação de base completa e restauração de dados.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <button class="btn btn-secondary btn-block btn-sm" onclick="window.PATreeExporter.exportToCSV()">
+              Exportar Base em CSV
+            </button>
+            <button class="btn btn-secondary btn-block btn-sm" onclick="window.PATreeExporter.printInventoryReport()">
+              Imprimir Inventário em PDF
+            </button>
+            <button class="btn btn-danger btn-block btn-sm" onclick="if(confirm('Restaurar dados de demonstração iniciais?')) { window.db.resetDatabase(); app.init(); app.showToast('Dados restaurados.'); }">
+              Restaurar Dados Iniciais
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Floating Action Button (FAB) -->
+    <button class="fab" onclick="app.openNewAssetModal()" title="Novo Ativo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-screen="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Início</span>
+      </button>
+
+      <button class="nav-item" data-screen="assets">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+        <span>Ativos</span>
+      </button>
+
+      <!-- Center Scanner Button -->
+      <button class="nav-item nav-item-scan" data-screen="scanner">
+        <div class="nav-scan-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </div>
+        <span>Scanner</span>
+      </button>
+
+      <button class="nav-item" data-screen="sectors">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        <span>Setores</span>
+      </button>
+
+      <button class="nav-item" data-screen="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Perfil</span>
+      </button>
+    </nav>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ================= MODAL 1: FORM ATIVO ================= -->
+    <div id="modal-asset-form" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-handle-bar"></div>
+        <div class="sheet-header">
+          <h3 id="form-asset-title" style="font-size: 1rem;">Novo Ativo</h3>
+          <button class="btn btn-icon btn-sm" onclick="app.closeModal('modal-asset-form')">✕</button>
+        </div>
+        <div class="sheet-body">
+          <form id="form-asset" onsubmit="app.handleAssetFormSubmit(event)">
+            <input type="hidden" id="asset-id-input" />
+
+            <!-- Photo Capture -->
+            <div class="form-group">
+              <label class="form-label">Fotos do Ativo</label>
+              <div class="photo-uploader-box">
+                <div style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">Capturar foto com a câmera ou anexar arquivo</div>
+                <div style="display: flex; gap: 6px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="app.openCameraModal()">
+                    Câmera
+                  </button>
+                  <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+                    Arquivo
+                    <input type="file" id="asset-photo-file-input" accept="image/*" style="display: none;" />
+                  </label>
+                </div>
+              </div>
+              <div id="form-photo-grid" class="photo-preview-grid"></div>
+            </div>
+
+            <!-- Tag & Name -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Tombamento <span class="req">*</span></label>
+                <input type="text" id="asset-tag-input" class="form-input" style="font-family: var(--font-mono); font-weight: 600;" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Setor <span class="req">*</span></label>
+                <select id="asset-sector-select" class="form-select" required></select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nome do Ativo <span class="req">*</span></label>
+              <input type="text" id="asset-name-input" class="form-input" placeholder="Ex: Notebook Dell Latitude 5440" required />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Categoria <span class="req">*</span></label>
+                <select id="asset-category-select" class="form-select" required></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Responsável</label>
+                <input type="text" id="asset-manager-input" class="form-input" placeholder="Nome do colaborador" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Valor de Aquisição (R$) <span class="req">*</span></label>
+                <input type="number" step="0.01" id="asset-val-input" class="form-input" placeholder="0.00" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Data de Aquisição <span class="req">*</span></label>
+                <input type="date" id="asset-date-input" class="form-input" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Estado de Conservação</label>
+                <select id="asset-condition-select" class="form-select">
+                  <option value="Excelente">Excelente</option>
+                  <option value="Bom" selected>Bom</option>
+                  <option value="Regular">Regular</option>
+                  <option value="Danificado">Danificado</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status Operacional</label>
+                <select id="asset-status-select" class="form-select">
+                  <option value="Em Uso" selected>Em Uso</option>
+                  <option value="Em Estoque">Em Estoque</option>
+                  <option value="Em Manutenção">Em Manutenção</option>
+                  <option value="Baixado">Baixado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Marca</label>
+                <input type="text" id="asset-brand-input" class="form-input" placeholder="Ex: Dell" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Modelo</label>
+                <input type="text" id="asset-model-input" class="form-input" placeholder="Ex: Latitude 5440" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Nº de Série</label>
+                <input type="text" id="asset-serial-input" class="form-input" placeholder="Serial Number" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Vida Útil (Anos)</label>
+                <input type="number" id="asset-life-input" class="form-input" value="5" min="1" max="50" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nota Fiscal (NF-e)</label>
+              <input type="text" id="asset-nf-input" class="form-input" placeholder="Ex: NF-098124" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Observações</label>
+              <textarea id="asset-desc-input" class="form-textarea" placeholder="Especificações técnicas ou garantia..."></textarea>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <button type="submit" class="btn btn-primary btn-block">Salvar Ativo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL 2: FORM SETOR ================= -->
+    <div id="modal-sector-form" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-handle-bar"></div>
+        <div class="sheet-header">
+          <h3 id="form-sector-title" style="font-size: 1rem;">Novo Setor</h3>
+          <button class="btn btn-icon btn-sm" onclick="app.closeModal('modal-sector-form')">✕</button>
+        </div>
+        <div class="sheet-body">
+          <form id="form-sector" onsubmit="app.handleSectorFormSubmit(event)">
+            <input type="hidden" id="sector-id-input" />
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Código do Setor</label>
+                <input type="text" id="sector-code-input" class="form-input" placeholder="Ex: SET-TI" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cor Identificadora</label>
+                <input type="color" id="sector-color-input" class="form-input" value="#059669" style="height: 38px; padding: 2px;" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nome do Setor <span class="req">*</span></label>
+              <input type="text" id="sector-name-input" class="form-input" placeholder="Ex: Tecnologia da Informação" required />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Responsável</label>
+                <input type="text" id="sector-manager-input" class="form-input" placeholder="Nome do gestor" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Localização</label>
+                <input type="text" id="sector-location-input" class="form-input" placeholder="Ex: Bloco B - 2º Andar" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Orçamento Alocado (R$)</label>
+              <input type="number" step="0.01" id="sector-budget-input" class="form-input" placeholder="0.00" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Descrição</label>
+              <textarea id="sector-desc-input" class="form-textarea" placeholder="Atribuições do setor..."></textarea>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <button type="submit" class="btn btn-primary btn-block">Salvar Setor</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL 3: TRANSFERÊNCIA DE SETOR ================= -->
+    <div id="modal-transfer" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-handle-bar"></div>
+        <div class="sheet-header">
+          <h3 style="font-size: 1rem;">Transferir Ativo</h3>
+          <button class="btn btn-icon btn-sm" onclick="app.closeModal('modal-transfer')">✕</button>
+        </div>
+        <div class="sheet-body">
+          <form id="form-transfer" onsubmit="app.handleTransferSubmit(event)">
+            <div style="margin-bottom: 12px; padding: 10px; background: var(--bg-surface); border-radius: var(--radius-xs);">
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Ativo Selecionado:</div>
+              <div id="transfer-asset-title" style="font-weight: 600; font-size: 0.88rem;"></div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
+                Setor Atual: <b id="transfer-from-sector"></b> • Responsável: <b id="transfer-from-user"></b>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Setor de Destino <span class="req">*</span></label>
+              <select id="transfer-to-sector-select" class="form-select" required></select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Novo Responsável</label>
+              <input type="text" id="transfer-to-user-input" class="form-input" placeholder="Nome do novo responsável" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Motivo da Movimentação <span class="req">*</span></label>
+              <textarea id="transfer-reason-input" class="form-textarea" placeholder="Ex: Realocação interna de equipe..." required></textarea>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <button type="submit" class="btn btn-primary btn-block">Confirmar Transferência</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL 4: ETIQUETA QR CODE ================= -->
+    <div id="modal-qr-tag" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-handle-bar"></div>
+        <div class="sheet-header">
+          <h3 style="font-size: 1rem;">Etiqueta de Patrimônio</h3>
+          <button class="btn btn-icon btn-sm" onclick="app.closeModal('modal-qr-tag')">✕</button>
+        </div>
+        <div class="sheet-body" style="text-align: center;">
+          <div class="printable-tag-preview">
+            <div class="tag-header">
+              <div class="tag-company">PATree</div>
+              <div style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #475569;">Patrimônio</div>
+            </div>
+            <div class="tag-content-row">
+              <canvas id="tag-preview-qr-canvas" class="tag-qr-canvas"></canvas>
+              <div class="tag-meta" style="text-align: left;">
+                <div class="tag-number" id="tag-preview-number">PAT-000000</div>
+                <div class="tag-asset-title" id="tag-preview-title">Nome do Ativo</div>
+                <div class="tag-sector" id="tag-preview-sector">Setor: Geral</div>
+                <div class="tag-sector" id="tag-preview-sn">S/N: N/A</div>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-muted" style="font-size: 0.78rem; margin: 14px 0;">
+            Etiqueta formatada para impressão térmica ou adesiva.
+          </p>
+
+          <button id="btn-print-tag-action" class="btn btn-primary btn-block">
+            Imprimir Etiqueta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL 5: CÂMERA AO VIVO ================= -->
+    <div id="modal-camera" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-handle-bar"></div>
+        <div class="sheet-header">
+          <h3 style="font-size: 1rem;">Câmera</h3>
+          <button class="btn btn-icon btn-sm" onclick="app.closeCameraModal()">✕</button>
+        </div>
+        <div class="sheet-body" style="padding: 10px;">
+          <div class="camera-viewfinder-box">
+            <video id="camera-preview-video" class="camera-video-elem" autoplay playsinline muted></video>
+          </div>
+          
+          <div class="camera-controls-bar">
+            <button type="button" class="btn btn-icon" onclick="app.toggleCameraFacing()" title="Alternar Câmera">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+
+            <!-- Shutter -->
+            <button type="button" class="shutter-btn" onclick="app.captureCameraSnapshot()" title="Capturar"></button>
+
+            <button type="button" class="btn btn-icon" onclick="app.closeCameraModal()" title="Fechar">
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL 6: PERFIL DO ADMINISTRADOR ================= -->
+    <div id="modal-admin-profile" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-handle-bar"></div>
+        <div class="sheet-header">
+          <h3 style="font-size: 1rem;">Editar Perfil do Administrador</h3>
+          <button class="btn btn-icon btn-sm" onclick="app.closeModal('modal-admin-profile')">✕</button>
+        </div>
+        <div class="sheet-body">
+          <form id="form-admin-profile" onsubmit="app.handleAdminProfileSubmit(event)">
+            <div class="form-group">
+              <label class="form-label">Nome do Administrador <span class="req">*</span></label>
+              <input type="text" id="admin-name-input" class="form-input" placeholder="Ex: Administrador" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">E-mail <span class="req">*</span></label>
+              <input type="email" id="admin-email-input" class="form-input" placeholder="admin@patree.com" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Telefone / Ramal</label>
+              <input type="text" id="admin-phone-input" class="form-input" placeholder="(00) 00000-0000" />
+            </div>
+
+            <div style="margin-top: 12px;">
+              <button type="submit" class="btn btn-primary btn-block">Salvar Alterações</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/qrcode-lib.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/scanner.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
