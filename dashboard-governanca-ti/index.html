@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard de Governança de TI — Prefeitura de Boa Esperança</title>
+<meta name="description" content="Painel de governança de TI da Prefeitura de Boa Esperança: indicadores, riscos, cronograma e decisões prioritárias do PDTI 2026–2027.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6db3'/%3E%3Crect x='7' y='17' width='4' height='8' rx='1' fill='white'/%3E%3Crect x='14' y='11' width='4' height='14' rx='1' fill='white'/%3E%3Crect x='21' y='6' width='4' height='19' rx='1' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+:root{
+ --font-anthropic-sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ --font-anthropic-serif:"Source Serif 4",Georgia,serif;
+ --color-fg:#1f1e1c;--color-fg-muted:#68655e;--color-bg:#f7f6f2;--color-panel:#ffffff;--color-border-line:#e4e1d8;
+ --color-ok:#2a7a4b;--color-warn:#a05f06;--color-bad:#bf3a2b;
+ --cds-font-size-caption:.8125rem;--cds-font-size-body:.96875rem;--cds-font-size-heading:1.0625rem;--cds-font-size-title:clamp(1.6rem,3.2vw,2.25rem);
+ --cds-font-weight-medium:600;
+ --cds-gap-xs:.25rem;--cds-gap-sm:.5rem;--cds-gap-md:1rem;--cds-gap-lg:1.5rem;--cds-gap-xl:2.5rem;
+ --cds-pad-xs:.3rem;--cds-pad-sm:.55rem;--cds-pad-md:.9rem;--cds-pad-lg:1.15rem;--cds-pad-xl:1.75rem;
+ --cds-radius:8px;
+ --cds-chart-grid:#ebe8e0;--cds-chart-axis:#bdb9ae;--cds-chart-reference:#55524b;--cds-chart-muted:#c9c5bb;--cds-chart-status-critical:#c8432f;
+ --cds-surface-popover:#ffffff;--cds-border:#dcd8cd;--cds-shadow-popover:0 6px 20px rgba(0,0,0,.12);--cds-text-secondary:#68655e;
+ --cds-dur-slow:.4s;--cds-ease-out:cubic-bezier(.2,.8,.2,1);
+ color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{
+ --color-fg:#ecebe6;--color-fg-muted:#a3a098;--color-bg:#181816;--color-panel:#22211f;--color-border-line:#383632;
+ --color-ok:#62c48a;--color-warn:#e3a94b;--color-bad:#f0705f;
+ --cds-chart-grid:#302e2b;--cds-chart-axis:#55524b;--cds-chart-reference:#d6d3cb;--cds-chart-muted:#4a4743;--cds-chart-status-critical:#ef6a55;
+ --cds-surface-popover:#2a2926;--cds-border:#45423d;--cds-shadow-popover:0 6px 20px rgba(0,0,0,.45);--cds-text-secondary:#a3a098;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
+#dash-root{max-width:1240px;margin-inline:auto;padding:clamp(1rem,4vw,2.75rem) clamp(1rem,4vw,2.5rem) 3rem}
+.dash-skeleton{color:transparent!important}
+</style>
+
+<script>
+window.dash = (() => {
+  const DATA = {"indicadores": [{"id": "I1", "indicador": "Disponibilidade mensal do portal", "valor": 97.4, "valor_txt": "97,4%", "meta_txt": "≥ 99%", "situacao": "Não atendido", "fonte": "Monitoramento do portal e relatório do prestador", "periodo": "Mês da linha de base", "responsavel": "Gestor de TI", "origem": "Base: PDTI §7.2.1", "calculo": "(720 h − 19 h) ÷ 720 h, mês de 30 dias", "pdti": "O1 · I1", "psi": "§5 Continuidade — SLA do portal", "risco": "R1, R2", "acordo": "SLA", "ordem": 1}, {"id": "I2", "indicador": "Tempo médio de restauração do portal", "valor": 9.5, "valor_txt": "9,5 h", "meta_txt": "≤ 4 h", "situacao": "Não atendido", "fonte": "Registro de incidentes e DRP", "periodo": "Mês da linha de base", "responsavel": "Gestor de TI", "origem": "Base: PDTI §5.3 · DRP", "calculo": "Tempo total de restauração ÷ nº de incidentes", "pdti": "O1 · I1 (§5.3: restaurar em até 4 h)", "psi": "§5 Protocolo de incidentes", "risco": "R2", "acordo": "DRP · DORA (tempo de restauração)", "ordem": 2}, {"id": "I3", "indicador": "Chamados de lentidão do prontuário", "valor": 146, "valor_txt": "146", "meta_txt": "≤ 29 em 6 meses (−80%)", "situacao": "Não atendido", "fonte": "Service Desk", "periodo": "20 dias úteis da linha de base", "responsavel": "Coord. de Sistemas e Infraestrutura", "origem": "Base: PDTI §7.2.2", "calculo": "Contagem de chamados em 20 dias úteis", "pdti": "O2 · I2", "psi": "§5 Continuidade — SLA do prontuário", "risco": "R3, R5", "acordo": "SLA", "ordem": 3}, {"id": "I4", "indicador": "Dias úteis com lentidão no prontuário", "valor": 35, "valor_txt": "35%", "meta_txt": "≤ 5% (1 em 20 dias)", "situacao": "Não atendido", "fonte": "Service Desk e monitoramento do prontuário", "periodo": "20 dias úteis da linha de base", "responsavel": "Equipe de Sistemas e Infraestrutura", "origem": "Base: PDTI §2.2", "calculo": "7 ÷ 20 dias úteis", "pdti": "O2 · I2", "psi": "§1 Disponibilidade", "risco": "R3, R5", "acordo": "SLA", "ordem": 4}, {"id": "I5", "indicador": "Escalonamentos à infraestrutura no prazo", "valor": 78, "valor_txt": "78%", "meta_txt": "≥ 95%", "situacao": "Não atendido", "fonte": "Service Desk — escalonamentos", "periodo": "Mês da linha de base", "responsavel": "Equipe de Infraestrutura de TI", "origem": "Base: PSI §2 · OLA", "calculo": "Escalonados no prazo ÷ total escalonado", "pdti": "O2 · I2", "psi": "§2 Papéis — Equipe técnica", "risco": "R3, R4", "acordo": "OLA", "ordem": 5}, {"id": "I6", "indicador": "Meses desde o último teste de restauração", "valor": 11, "valor_txt": "11 meses", "meta_txt": "≤ 1 mês (teste mensal)", "situacao": "Não atendido", "fonte": "Atas e registros de teste de restauração", "periodo": "Situação na linha de base", "responsavel": "Coordenação de TI", "origem": "Base: PDTI §7.2.3", "calculo": "Hoje − data do último teste", "pdti": "O3 · I3", "psi": "§5 Continuidade e §6 Evidências", "risco": "R7", "acordo": "DRP", "ordem": 6}, {"id": "I7", "indicador": "Rotinas de backup automatizadas", "valor": 40, "valor_txt": "40%", "meta_txt": "100%", "situacao": "Não atendido", "fonte": "Inventário de rotinas de backup", "periodo": "Levantamento do M1", "responsavel": "Equipe de Infraestrutura de TI", "origem": "Base: PDTI §5.3", "calculo": "Rotinas automatizadas ÷ rotinas existentes", "pdti": "O3 · I3 (§5.3 C.1)", "psi": "§5 Continuidade — backup automatizado", "risco": "R6", "acordo": "DRP", "ordem": 7}, {"id": "I8", "indicador": "Contas do prontuário revisadas no semestre", "valor": 85, "valor_txt": "85%", "meta_txt": "100% por semestre", "situacao": "Em atenção", "fonte": "Relação de permissões e logs de acesso", "periodo": "Semestre em curso", "responsavel": "Gestão de TI", "origem": "Base: PSI §6", "calculo": "Contas revisadas ÷ contas com acesso", "pdti": "O2 / O3 · P4", "psi": "§4 Controle de acesso e §6 Revisão semestral", "risco": "R8", "acordo": "PSI · LGPD", "ordem": 8}], "riscos": [{"id": "R1", "vinculo": "O1 / I1", "risco": "Nova indisponibilidade do portal por falta de SLA e monitoramento", "prob": "Alta", "impacto": "Alto", "crit": "Alta", "controle": "Formalizar SLA, monitorar e registrar incidentes", "politica": "P1"}, {"id": "R2", "vinculo": "O1 / I1", "risco": "Falha ou demora na recuperação do portal após incidente grave", "prob": "Média", "impacto": "Alto", "crit": "Alta", "controle": "Documentar e testar o plano de recuperação", "politica": "P1"}, {"id": "R3", "vinculo": "O2 / I2", "risco": "Lentidão persiste por diagnóstico incompleto", "prob": "Alta", "impacto": "Alto", "crit": "Alta", "controle": "Diagnosticar antes de intervir e acompanhar o desempenho", "politica": "P2"}, {"id": "R4", "vinculo": "O2 / I2", "risco": "Correções no prontuário causam nova degradação", "prob": "Média", "impacto": "Médio", "crit": "Média", "controle": "Testar, registrar e prever reversão das mudanças", "politica": "P2"}, {"id": "R5", "vinculo": "O2 / I2", "risco": "Capacidade insuficiente nos picos das unidades de saúde", "prob": "Média", "impacto": "Alto", "crit": "Alta", "controle": "Acompanhar recursos e alertar degradação", "politica": "P2"}, {"id": "R6", "vinculo": "O3 / I3", "risco": "Falha da rotina de backup não é percebida", "prob": "Média", "impacto": "Alto", "crit": "Alta", "controle": "Automatizar, registrar e conferir execuções", "politica": "P3"}, {"id": "R7", "vinculo": "O3 / I3", "risco": "Restauração falha quando necessária", "prob": "Alta", "impacto": "Alto", "crit": "Alta", "controle": "Testes formais de restauração com registro", "politica": "P3"}, {"id": "R8", "vinculo": "O2 / O3", "risco": "Acesso indevido ao prontuário ou aos backups", "prob": "Média", "impacto": "Alto", "crit": "Alta", "controle": "Acesso por função e revisão de permissões", "politica": "P4"}], "decisoes": [{"prioridade": 1, "decisao": "Testar já a restauração dos backups atuais", "base": "I6 · I7 · R7", "acao": "Executar um teste formal de restauração no M1, sem esperar a automação, e registrar o resultado em ata.", "responsavel": "Equipe de Infraestrutura de TI", "prazo": "M1 (antecipa o marco M4)", "evidencia": "Inventário de rotinas, logs de backup e tempo real de restauração"}, {"prioridade": 2, "decisao": "Formalizar o SLA do portal e o plano de recuperação", "base": "I1 · I2 · R1 · R2", "acao": "Revisar o contrato com o prestador, fixar disponibilidade de 99% e restauração em até 4 h, e ativar monitoramento com alerta.", "responsavel": "Gestão de TI", "prazo": "M1 a M3", "evidencia": "Contrato vigente, relatórios do prestador e causas das indisponibilidades"}, {"prioridade": 3, "decisao": "Diagnosticar o prontuário antes de comprar hardware", "base": "I3 · I4 · I5 · R3 · R5", "acao": "Aprovar o diagnóstico de banco, aplicação e rede das UBS e fixar uma OLA de escalonamento para a infraestrutura.", "responsavel": "Equipe de Sistemas e Infraestrutura", "prazo": "M1 a M2 (correções M3 a M4)", "evidencia": "Chamados classificados por causa, uso de CPU e memória, consultas lentas do SGBD"}, {"prioridade": 4, "decisao": "Concluir a revisão de acessos ao prontuário e aos backups", "base": "I8 · R8", "acao": "Remover acessos sem necessidade funcional e registrar exceções como risco assumido (PSI §6).", "responsavel": "Gestão de TI, com aprovação do Comitê de TI", "prazo": "Até o fim do semestre", "evidencia": "Relação de permissões e logs de acesso ao prontuário"}], "linha_base": [{"medida": "Indisponibilidade do portal no mês", "atual": 19, "limite": 7.2, "unidade": "h", "origem": "PDTI §7.2.1; limite = 1% de 720 h"}, {"medida": "Chamados de lentidão do prontuário", "atual": 146, "limite": 29, "unidade": "chamados", "origem": "PDTI §7.2.2; limite = meta de −80%"}, {"medida": "Meses sem teste de restauração", "atual": 11, "limite": 1, "unidade": "meses", "origem": "PDTI §2.3; limite = teste mensal (PSI §5)"}], "cronograma": [{"ordem": 1, "iniciativa": "I1 Portal", "atividade": "Levantamento da situação do portal", "inicio": 1, "fim": 1, "origem": "PDTI Quadro 7"}, {"ordem": 2, "iniciativa": "I1 Portal", "atividade": "Definição de SLA e prioridades", "inicio": 2, "fim": 3, "origem": "PDTI Quadro 7"}, {"ordem": 3, "iniciativa": "I1 Portal", "atividade": "Plano de continuidade e recuperação", "inicio": 3, "fim": 4, "origem": "PDTI Quadro 7"}, {"ordem": 4, "iniciativa": "I1 Portal", "atividade": "Monitoramento da disponibilidade", "inicio": 3, "fim": 12, "origem": "PDTI Quadro 7"}, {"ordem": 5, "iniciativa": "I2 Prontuário", "atividade": "Diagnóstico técnico do prontuário", "inicio": 1, "fim": 2, "origem": "PDTI Quadro 7"}, {"ordem": 6, "iniciativa": "I2 Prontuário", "atividade": "Plano de tratamento", "inicio": 2, "fim": 2, "origem": "PDTI Quadro 7"}, {"ordem": 7, "iniciativa": "I2 Prontuário", "atividade": "Correções prioritárias", "inicio": 3, "fim": 4, "origem": "PDTI Quadro 7"}, {"ordem": 8, "iniciativa": "I2 Prontuário", "atividade": "Monitoramento e estabilização", "inicio": 4, "fim": 6, "origem": "PDTI Quadro 7"}, {"ordem": 9, "iniciativa": "I3 Backup", "atividade": "Teste emergencial de restauração (Decisão 1)", "inicio": 1, "fim": 1, "origem": "Proposta do painel"}, {"ordem": 10, "iniciativa": "I3 Backup", "atividade": "Levantamento das rotinas de backup", "inicio": 1, "fim": 1, "origem": "PDTI Quadro 7"}, {"ordem": 11, "iniciativa": "I3 Backup", "atividade": "Definição da política de backup", "inicio": 2, "fim": 3, "origem": "PDTI Quadro 7"}, {"ordem": 12, "iniciativa": "I3 Backup", "atividade": "Automação das rotinas de backup", "inicio": 3, "fim": 4, "origem": "PDTI Quadro 7"}, {"ordem": 13, "iniciativa": "I3 Backup", "atividade": "Testes mensais de restauração", "inicio": 4, "fim": 12, "origem": "PDTI Quadro 7"}]};
+  const calcs = {}, results = {}, draws = [];
+  const data = (id) => {
+    if (Object.prototype.hasOwnProperty.call(DATA, id)) return { status: 'ok', data: DATA[id] };
+    if (calcs[id]) {
+      if (!(id in results)) results[id] = calcs[id].fn(...calcs[id].inputs.map((i) => data(i).data));
+      return { status: 'ok', data: results[id] };
+    }
+    return { status: 'missing', data: [] };
+  };
+  const run = () => draws.forEach(([name, fn]) =>
+    document.querySelectorAll('[data-draw="' + name + '"]').forEach((el) => { try { fn(el); } catch (e) { console.error(name, e); } }));
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(run, 120); });
+  window.addEventListener('load', run);
+  return {
+    data, run,
+    calc: (id, spec) => { calcs[id] = spec; },
+    draw: (name, fn) => { draws.push([name, fn]); },
+    onData: (fn) => { window.addEventListener('load', fn); },
+    colors: ['#2f6db3', '#2a9d8f', '#8b5cc4', '#d08a1e', '#c4467a', '#5a8f2b', '#4b7aa8', '#9a6b3f']
+  };
+})();
+</script>
+
+</head>
+<body>
+<div id="dash-root">
+<style>
+#dash-root .gv{font-family:var(--font-anthropic-sans);display:flex;flex-direction:column;gap:var(--cds-gap-xl);color:var(--color-fg)}
+.gv h1,.gv h2,.gv h3,.gv p,.gv dl,.gv dd,.gv ul{margin:0}
+.gv-eyebrow{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);letter-spacing:.04em;text-transform:uppercase}
+.gv-title{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);line-height:1.2;margin-top:var(--cds-gap-xs)!important}
+.gv-take{font-size:var(--cds-font-size-body);margin-top:var(--cds-gap-sm)!important;max-width:60rem;line-height:1.5}
+.gv .gv-take b{font-weight:600;font-variant-numeric:tabular-nums}
+.gv-legend{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm) var(--cds-gap-md);margin-top:var(--cds-gap-sm)!important;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);align-items:center}
+.gv-legend span{display:inline-flex;align-items:center;gap:var(--cds-gap-xs)}
+.gv-sec{display:flex;flex-direction:column;gap:var(--cds-gap-md)}
+.gv-h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.gv-h2 small{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-weight:400;margin-left:var(--cds-gap-xs);letter-spacing:.03em}
+.gv-note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);line-height:1.5;max-width:60rem}
+.gv-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:var(--cds-gap-md)}
+.gv-card,.gv-tile{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg)}
+.gv-tile{display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
+.gv-tile-top{display:flex;justify-content:space-between;align-items:center;gap:var(--cds-gap-sm)}
+.gv-id{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-variant-numeric:tabular-nums}
+.gv-tile-label{font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium);line-height:1.35}
+.gv-big{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);line-height:1.1;font-variant-numeric:tabular-nums;min-height:1.1em}
+.gv-dl{display:grid;gap:var(--cds-gap-xs);font-size:var(--cds-font-size-caption)}
+.gv-dl div{display:grid;grid-template-columns:6.5rem 1fr;gap:var(--cds-gap-sm)}
+.gv-dl dt{color:var(--color-fg-muted)}
+.gv-chip{display:inline-flex;align-items:center;gap:.35rem;font-size:var(--cds-font-size-caption);padding:.1rem .5rem;border-radius:999px;border:1px solid var(--color-border-line);white-space:nowrap}
+.gv-chip::before{content:"";width:.45rem;height:.45rem;border-radius:50%;background:currentColor}
+.gv-chip.is-bad{color:var(--color-bad);border-color:color-mix(in srgb,var(--color-bad) 40%,transparent)}
+.gv-chip.is-warn{color:var(--color-warn);border-color:color-mix(in srgb,var(--color-warn) 40%,transparent)}
+.gv-chip.is-ok{color:var(--color-ok);border-color:color-mix(in srgb,var(--color-ok) 40%,transparent)}
+.gv-orig{margin-top:auto!important;align-self:flex-start;font-size:var(--cds-font-size-caption);padding:.1rem .5rem;border-radius:var(--cds-radius);border:1px solid var(--color-border-line);color:var(--color-fg-muted)}
+.gv-orig.is-hyp{border-style:dashed;color:var(--color-warn);border-color:color-mix(in srgb,var(--color-warn) 55%,transparent)}
+.gv-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,24rem),1fr));gap:var(--cds-gap-md)}
+.gv-card{display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
+.gv-card h3{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.gv-chart{position:relative;min-height:200px}
+.gv-tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);line-height:1.45;max-width:16rem;z-index:2}
+.gv-tip .t{color:var(--cds-text-secondary)}
+.gv-matrix{display:grid;grid-template-columns:auto repeat(3,1fr);gap:4px;min-height:220px;font-size:var(--cds-font-size-caption)}
+.gv-matrix .ax{color:var(--color-fg-muted);display:flex;align-items:center;justify-content:center;padding:var(--cds-pad-xs)}
+.gv-matrix .ax.y{justify-content:flex-end}
+.gv-matrix .c{border-radius:var(--cds-radius);padding:var(--cds-pad-sm);min-height:64px;display:flex;flex-direction:column;gap:var(--cds-gap-xs)}
+.gv-matrix .c .lv{color:var(--color-fg-muted)}
+.gv-matrix .c.Alta{background:color-mix(in srgb,var(--color-bad) 16%,transparent)}
+.gv-matrix .c.Média{background:color-mix(in srgb,var(--color-warn) 16%,transparent)}
+.gv-matrix .c.Baixa{background:color-mix(in srgb,var(--color-ok) 12%,transparent)}
+.gv-matrix .rs{display:flex;flex-wrap:wrap;gap:4px}
+.gv-matrix .r{font-weight:600;font-variant-numeric:tabular-nums;padding:.05rem .4rem;border-radius:var(--cds-radius);background:var(--color-panel);border:1px solid var(--color-border-line)}
+.gv-axt{display:flex;justify-content:space-between;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.gv-tw{overflow:auto;max-height:28rem}
+.gv-table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);line-height:1.45}
+.gv-table th{position:sticky;top:0;background:var(--color-panel);text-align:left;font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.gv-table td{padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);vertical-align:top}
+.gv-table td.k{font-weight:600;white-space:nowrap}
+.gv-table td.cr-Alta{color:var(--color-bad)} .gv-table td.cr-Média{color:var(--color-warn)} .gv-table td.cr-Baixa{color:var(--color-ok)}
+.gv-dec{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:var(--cds-gap-md);min-height:160px}
+.gv-dec .d{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
+.gv-dec .n{font-family:var(--font-anthropic-serif);font-size:var(--cds-font-size-title);line-height:1;color:var(--color-fg-muted)}
+.gv-dec h3{font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium);line-height:1.35}
+.gv-dec p{font-size:var(--cds-font-size-caption);line-height:1.5}
+.gv-dec .l{color:var(--color-fg-muted)}
+.gv-dec .ev{border-top:1px dashed var(--color-border-line);padding-top:var(--cds-pad-sm);color:var(--color-warn)}
+.gv-pend{display:flex;flex-direction:column;gap:var(--cds-gap-xs);padding-left:1.1rem!important;font-size:var(--cds-font-size-caption);line-height:1.55}
+.gv-gantt{min-height:420px}
+.gv-foot{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);border-top:1px solid var(--color-border-line);padding-top:var(--cds-pad-sm)}
+.gv-fail{display:flex;align-items:center;justify-content:center;gap:.4rem;min-height:inherit;height:100%;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.gv-fail::before{content:"";width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad)}
+.gv [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+.gv [data-dash-source-state=empty]{color:transparent}
+</style>
+<div class="gv">
+<header id="topo">
+<p class="gv-eyebrow">Governança de TI · CSTSI 6 · IFAC Campus Rio Branco</p>
+<h1 class="gv-title">Prefeitura de Boa Esperança — da evidência à decisão</h1>
+<p class="gv-take">Dos <b class="dash-skeleton" data-draw="cell" data-source="resumo" data-field="total">—</b> indicadores do painel, <b class="dash-skeleton" data-draw="cell" data-source="resumo" data-field="nao_atendidos">—</b> estão não atendidos e <b class="dash-skeleton" data-draw="cell" data-source="resumo" data-field="em_atencao">—</b> em atenção. O maior desvio é <b class="dash-skeleton" data-draw="cell" data-source="maior" data-field="texto">—</b>.</p>
+<p class="gv-legend"><span class="gv-chip is-bad">Não atendido</span> abaixo da meta na linha de base <span class="gv-chip is-warn">Em atenção</span> abaixo da meta, prazo em curso</p>
+</header>
+
+<section class="gv-sec" id="indicadores">
+<h2 class="gv-h2">Indicadores <small>KPI_DASHBOARD</small></h2>
+<p class="gv-note">Cada indicador traz valor, meta, situação, fonte, período, responsável e documento de base. Os vínculos com PDTI, PSI, riscos e acordos estão na tabela de integração abaixo.</p>
+<div class="gv-tiles">
+<article class="gv-tile" id="kpi-I1">
+<div class="gv-tile-top"><span class="gv-id">I1</span><span class="gv-chip dash-skeleton" data-draw="sit" data-source="indicadores" data-field="situacao" data-where="id=I1">—</span></div>
+<h3 class="gv-tile-label">Disponibilidade mensal do portal</h3>
+<p class="gv-big dash-skeleton" data-draw="cell" data-source="indicadores" data-field="valor_txt" data-where="id=I1">—</p>
+<dl class="gv-dl">
+<div><dt>Meta</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="meta_txt" data-where="id=I1">—</span></dd></div>
+<div><dt>Fonte</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="fonte" data-where="id=I1">—</span></dd></div>
+<div><dt>Período</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="periodo" data-where="id=I1">—</span></dd></div>
+<div><dt>Responsável</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="responsavel" data-where="id=I1">—</span></dd></div>
+</dl>
+<p class="gv-orig dash-skeleton" data-draw="orig" data-source="indicadores" data-field="origem" data-where="id=I1">—</p>
+</article>
+<article class="gv-tile" id="kpi-I2">
+<div class="gv-tile-top"><span class="gv-id">I2</span><span class="gv-chip dash-skeleton" data-draw="sit" data-source="indicadores" data-field="situacao" data-where="id=I2">—</span></div>
+<h3 class="gv-tile-label">Tempo médio de restauração do portal</h3>
+<p class="gv-big dash-skeleton" data-draw="cell" data-source="indicadores" data-field="valor_txt" data-where="id=I2">—</p>
+<dl class="gv-dl">
+<div><dt>Meta</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="meta_txt" data-where="id=I2">—</span></dd></div>
+<div><dt>Fonte</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="fonte" data-where="id=I2">—</span></dd></div>
+<div><dt>Período</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="periodo" data-where="id=I2">—</span></dd></div>
+<div><dt>Responsável</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="responsavel" data-where="id=I2">—</span></dd></div>
+</dl>
+<p class="gv-orig dash-skeleton" data-draw="orig" data-source="indicadores" data-field="origem" data-where="id=I2">—</p>
+</article>
+<article class="gv-tile" id="kpi-I3">
+<div class="gv-tile-top"><span class="gv-id">I3</span><span class="gv-chip dash-skeleton" data-draw="sit" data-source="indicadores" data-field="situacao" data-where="id=I3">—</span></div>
+<h3 class="gv-tile-label">Chamados de lentidão do prontuário</h3>
+<p class="gv-big dash-skeleton" data-draw="cell" data-source="indicadores" data-field="valor_txt" data-where="id=I3">—</p>
+<dl class="gv-dl">
+<div><dt>Meta</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="meta_txt" data-where="id=I3">—</span></dd></div>
+<div><dt>Fonte</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="fonte" data-where="id=I3">—</span></dd></div>
+<div><dt>Período</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="periodo" data-where="id=I3">—</span></dd></div>
+<div><dt>Responsável</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="responsavel" data-where="id=I3">—</span></dd></div>
+</dl>
+<p class="gv-orig dash-skeleton" data-draw="orig" data-source="indicadores" data-field="origem" data-where="id=I3">—</p>
+</article>
+<article class="gv-tile" id="kpi-I4">
+<div class="gv-tile-top"><span class="gv-id">I4</span><span class="gv-chip dash-skeleton" data-draw="sit" data-source="indicadores" data-field="situacao" data-where="id=I4">—</span></div>
+<h3 class="gv-tile-label">Dias úteis com lentidão no prontuário</h3>
+<p class="gv-big dash-skeleton" data-draw="cell" data-source="indicadores" data-field="valor_txt" data-where="id=I4">—</p>
+<dl class="gv-dl">
+<div><dt>Meta</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="meta_txt" data-where="id=I4">—</span></dd></div>
+<div><dt>Fonte</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="fonte" data-where="id=I4">—</span></dd></div>
+<div><dt>Período</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="periodo" data-where="id=I4">—</span></dd></div>
+<div><dt>Responsável</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="responsavel" data-where="id=I4">—</span></dd></div>
+</dl>
+<p class="gv-orig dash-skeleton" data-draw="orig" data-source="indicadores" data-field="origem" data-where="id=I4">—</p>
+</article>
+<article class="gv-tile" id="kpi-I5">
+<div class="gv-tile-top"><span class="gv-id">I5</span><span class="gv-chip dash-skeleton" data-draw="sit" data-source="indicadores" data-field="situacao" data-where="id=I5">—</span></div>
+<h3 class="gv-tile-label">Escalonamentos à infraestrutura no prazo</h3>
+<p class="gv-big dash-skeleton" data-draw="cell" data-source="indicadores" data-field="valor_txt" data-where="id=I5">—</p>
+<dl class="gv-dl">
+<div><dt>Meta</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="meta_txt" data-where="id=I5">—</span></dd></div>
+<div><dt>Fonte</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="fonte" data-where="id=I5">—</span></dd></div>
+<div><dt>Período</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="periodo" data-where="id=I5">—</span></dd></div>
+<div><dt>Responsável</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="responsavel" data-where="id=I5">—</span></dd></div>
+</dl>
+<p class="gv-orig dash-skeleton" data-draw="orig" data-source="indicadores" data-field="origem" data-where="id=I5">—</p>
+</article>
+<article class="gv-tile" id="kpi-I6">
+<div class="gv-tile-top"><span class="gv-id">I6</span><span class="gv-chip dash-skeleton" data-draw="sit" data-source="indicadores" data-field="situacao" data-where="id=I6">—</span></div>
+<h3 class="gv-tile-label">Meses desde o último teste de restauração</h3>
+<p class="gv-big dash-skeleton" data-draw="cell" data-source="indicadores" data-field="valor_txt" data-where="id=I6">—</p>
+<dl class="gv-dl">
+<div><dt>Meta</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="meta_txt" data-where="id=I6">—</span></dd></div>
+<div><dt>Fonte</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="fonte" data-where="id=I6">—</span></dd></div>
+<div><dt>Período</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="periodo" data-where="id=I6">—</span></dd></div>
+<div><dt>Responsável</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="responsavel" data-where="id=I6">—</span></dd></div>
+</dl>
+<p class="gv-orig dash-skeleton" data-draw="orig" data-source="indicadores" data-field="origem" data-where="id=I6">—</p>
+</article>
+<article class="gv-tile" id="kpi-I7">
+<div class="gv-tile-top"><span class="gv-id">I7</span><span class="gv-chip dash-skeleton" data-draw="sit" data-source="indicadores" data-field="situacao" data-where="id=I7">—</span></div>
+<h3 class="gv-tile-label">Rotinas de backup automatizadas</h3>
+<p class="gv-big dash-skeleton" data-draw="cell" data-source="indicadores" data-field="valor_txt" data-where="id=I7">—</p>
+<dl class="gv-dl">
+<div><dt>Meta</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="meta_txt" data-where="id=I7">—</span></dd></div>
+<div><dt>Fonte</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="fonte" data-where="id=I7">—</span></dd></div>
+<div><dt>Período</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="periodo" data-where="id=I7">—</span></dd></div>
+<div><dt>Responsável</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="responsavel" data-where="id=I7">—</span></dd></div>
+</dl>
+<p class="gv-orig dash-skeleton" data-draw="orig" data-source="indicadores" data-field="origem" data-where="id=I7">—</p>
+</article>
+<article class="gv-tile" id="kpi-I8">
+<div class="gv-tile-top"><span class="gv-id">I8</span><span class="gv-chip dash-skeleton" data-draw="sit" data-source="indicadores" data-field="situacao" data-where="id=I8">—</span></div>
+<h3 class="gv-tile-label">Contas do prontuário revisadas no semestre</h3>
+<p class="gv-big dash-skeleton" data-draw="cell" data-source="indicadores" data-field="valor_txt" data-where="id=I8">—</p>
+<dl class="gv-dl">
+<div><dt>Meta</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="meta_txt" data-where="id=I8">—</span></dd></div>
+<div><dt>Fonte</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="fonte" data-where="id=I8">—</span></dd></div>
+<div><dt>Período</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="periodo" data-where="id=I8">—</span></dd></div>
+<div><dt>Responsável</dt><dd><span class=" dash-skeleton" data-draw="cell" data-source="indicadores" data-field="responsavel" data-where="id=I8">—</span></dd></div>
+</dl>
+<p class="gv-orig dash-skeleton" data-draw="orig" data-source="indicadores" data-field="origem" data-where="id=I8">—</p>
+</article>
+</div>
+</section>
+
+<section class="gv-sec" id="desvios">
+<div class="gv-grid2">
+<article class="gv-card" id="comparativo">
+<h3>Quantas vezes acima do limite <small class="gv-note">COMPARATIVE_BAR</small></h3>
+<p class="gv-note">Valor da linha de base dividido pelo limite da meta, só com dados registrados no PDTI. A linha tracejada marca o limite.</p>
+<div class="gv-chart dash-skeleton" data-draw="ratio" data-source="vezes"></div>
+<p class="gv-note">O gráfico mostra o tamanho do desvio, não a causa: a causa depende das evidências pedidas em cada decisão.</p>
+</article>
+<article class="gv-card" id="matriz">
+<h3>Matriz de riscos <small class="gv-note">RISK_MATRIX</small></h3>
+<p class="gv-note">Matriz qualitativa do PDTI (Quadro 9): criticidade = probabilidade × impacto em três níveis.</p>
+<div class="gv-axt"><span>Probabilidade ↓</span><span>Impacto →</span></div>
+<div class="gv-matrix dash-skeleton" data-draw="matrix" data-source="riscos"></div>
+</article>
+</div>
+</section>
+
+<section class="gv-sec" id="riscos">
+<h2 class="gv-h2">Riscos e tratamento</h2>
+<p class="gv-note">Riscos do PDTI (Quadro 10), com a política proposta que trata cada um (Quadro 11).</p>
+<div class="gv-card"><div class="gv-tw">
+<table class="gv-table" data-source="riscos" data-row-key="id">
+<thead><tr><th data-field="id">Risco</th><th data-field="risco">Descrição</th><th data-field="prob">Prob.</th><th data-field="impacto">Impacto</th><th data-field="crit">Criticidade</th><th data-field="controle">Controle</th><th data-field="politica">Política</th></tr></thead>
+<tbody data-draw="riskrows"></tbody>
+</table></div></div>
+</section>
+
+<section class="gv-sec" id="integracao">
+<h2 class="gv-h2">Integração dos artefatos <small>RELATION_MAP</small></h2>
+<p class="gv-note">O painel não substitui os documentos: cada indicador aponta o objetivo do PDTI, a seção da PSI, os riscos e o acordo (SLA, OLA, DRP ou DORA) que ele acompanha.</p>
+<div class="gv-card"><div class="gv-tw">
+<table class="gv-table" data-source="indicadores" data-row-key="id">
+<thead><tr><th data-field="id">ID</th><th data-field="indicador">Indicador</th><th data-field="pdti">PDTI</th><th data-field="psi">PSI</th><th data-field="risco">Riscos</th><th data-field="acordo">Acordo</th><th data-field="calculo">Cálculo</th></tr></thead>
+<tbody data-draw="relrows"></tbody>
+</table></div></div>
+</section>
+
+<section class="gv-sec" id="cronograma">
+<h2 class="gv-h2">Cronograma das iniciativas <small>TIME_SERIES</small></h2>
+<p class="gv-note">Atividades do Quadro 7 do PDTI no horizonte de 12 meses. Em vermelho, o teste emergencial de restauração proposto na Decisão 1, que antecipa para o M1 o primeiro teste previsto para o M4.</p>
+<div class="gv-card"><div class="gv-chart gv-gantt dash-skeleton" data-draw="gantt" data-source="cronograma"></div></div>
+</section>
+
+<section class="gv-sec" id="decisoes">
+<h2 class="gv-h2">Quatro decisões prioritárias para a direção</h2>
+<p class="gv-note">O PDTI mantém os três objetivos como prioridade máxima, sem desempate. A ordem segue a criticidade e o tamanho do desvio: primeiro o risco de criticidade alta com maior desvio (restauração), depois o serviço ao cidadão (portal), o atendimento de saúde (prontuário) e a conformidade (acessos).</p>
+<div class="gv-dec dash-skeleton" data-draw="decisions" data-source="decisoes"></div>
+</section>
+
+
+<p class="gv-foot">Fontes: PDTI da Prefeitura de Boa Esperança (versão 0.1), Política de Segurança da Informação (versão 1.0) e material da aula “Dashboard de Governança de TI”.</p>
+</div>
+
+<script>
+dash.calc('resumo', {
+  inputs: ['indicadores'],
+  title: 'Resumo dos indicadores',
+  description: 'Conta os indicadores por situação.',
+  fn: (indicadores) => [{
+    total: indicadores.length,
+    nao_atendidos: indicadores.filter((r) => r.situacao === 'Não atendido').length,
+    em_atencao: indicadores.filter((r) => r.situacao === 'Em atenção').length
+  }]
+});
+dash.calc('vezes', {
+  inputs: ['linha_base'],
+  title: 'Vezes acima do limite',
+  description: 'Divide o valor da linha de base pelo limite da meta.',
+  fn: (linha_base) => linha_base.map((r) => ({
+    medida: r.medida, atual: Number(r.atual), limite: Number(r.limite), unidade: r.unidade,
+    vezes: Math.round(Number(r.atual) / Number(r.limite) * 10) / 10
+  }))
+});
+dash.calc('maior', {
+  inputs: ['vezes'],
+  title: 'Maior desvio',
+  description: 'A medida com mais vezes acima do limite, em uma frase.',
+  fn: (vezes) => {
+    const m = vezes.slice().sort((a, b) => b.vezes - a.vezes)[0];
+    return m ? [{ texto: m.medida.toLowerCase() + ', ' + String(m.vezes).replace('.', ',') + '× o limite da meta' }] : [];
+  }
+});
+</script>
+
+<script>
+(() => {
+  const BAD = ['error', 'connect', 'declined', 'missing'];
+  const fmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+  const rowFor = (el) => {
+    const d = dash.data(el.dataset.source);
+    if (d.status !== 'ok') return { d, row: null };
+    let row = d.data[0];
+    const w = el.dataset.where;
+    if (w) {
+      const pairs = w.split('&').map((p) => p.split('=').map(decodeURIComponent));
+      row = d.data.find((r) => pairs.every(([k, v]) => String(r[k]) === v));
+    }
+    return { d, row };
+  };
+  const failLine = (el) => {
+    const s = document.createElement('span');
+    s.className = 'gv-fail';
+    s.textContent = 'Falha ao carregar';
+    el.replaceChildren(s);
+  };
+  const simple = (el, after) => {
+    const { d, row } = rowFor(el);
+    if (d.status === 'ok' && row) {
+      el.textContent = String(row[el.dataset.field] ?? '—');
+      el.classList.remove('dash-skeleton');
+      if (after) after(el, String(row[el.dataset.field] ?? ''));
+    } else {
+      el.textContent = '—';
+      if (d.status !== 'loading') el.classList.remove('dash-skeleton');
+      if (after) after(el, '');
+    }
+  };
+  dash.draw('cell', (el) => simple(el));
+  dash.draw('sit', (el) => simple(el, (e, v) => {
+    e.classList.toggle('is-bad', v === 'Não atendido');
+    e.classList.toggle('is-warn', v === 'Em atenção');
+    e.classList.toggle('is-ok', v === 'Atendido');
+  }));
+  dash.draw('orig', (el) => simple(el, (e, v) => e.classList.toggle('is-hyp', v.includes('a validar'))));
+
+  const state = (el, id) => {
+    const d = dash.data(id);
+    if (d.status === 'ok') { el.classList.remove('dash-skeleton'); return d.data; }
+    el.replaceChildren();
+    if (BAD.includes(d.status)) { el.classList.remove('dash-skeleton'); failLine(el); }
+    return null;
+  };
+
+  dash.draw('ratio', (el) => {
+    const rows = state(el, 'vezes');
+    if (!rows) return;
+    el.replaceChildren();
+    const W = Math.max(260, el.clientWidth || 400);
+    const rowH = 58, top = 4, axisH = 26;
+    const Hh = top + rows.length * rowH + axisH;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${Hh}`).attr('role', 'img')
+      .attr('aria-label', 'Quantas vezes cada valor está acima do limite da meta');
+    const right = 52;
+    const max = d3.max(rows, (r) => r.vezes) || 1;
+    const x = d3.scaleLinear([0, max * 1.04], [0, W - right]);
+    const ticks = x.ticks(Math.max(2, Math.floor(W / 110)));
+    const yEnd = top + rows.length * rowH;
+    const g = svg.append('g');
+    g.selectAll('line.grid').data(ticks).join('line').attr('x1', (t) => x(t)).attr('x2', (t) => x(t)).attr('y1', top).attr('y2', yEnd)
+      .attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
+    g.selectAll('text.tk').data(ticks).join('text').attr('x', (t) => x(t)).attr('y', yEnd + 16)
+      .attr('text-anchor', (t, i) => i === 0 ? 'start' : 'middle').attr('fill', 'var(--color-fg-muted)')
+      .style('font-size', 'var(--cds-font-size-caption)').text((t) => fmt.format(t) + '×');
+    g.append('line').attr('x1', 0).attr('x2', W - right).attr('y1', yEnd).attr('y2', yEnd).attr('stroke', 'var(--cds-chart-axis)');
+    const tip = d3.select(el).append('div').attr('class', 'gv-tip').style('opacity', 0);
+    const bars = svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (r, i) => `translate(0,${top + i * rowH})`);
+    bars.append('text').attr('x', 0).attr('y', 16).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text((r) => r.medida);
+    bars.append('rect').attr('x', 0).attr('y', 24).attr('height', 22).attr('rx', 4)
+      .attr('width', (r) => Math.max(2, x(r.vezes)))
+      .attr('fill', (r) => r.vezes === max ? 'var(--cds-chart-status-critical)' : dash.colors[0])
+      .on('pointermove', (ev, r) => {
+        const [mx, my] = d3.pointer(ev, el);
+        tip.replaceChildren();
+        tip.append('div').attr('class', 't').text(r.medida);
+        tip.append('div').text(`Atual: ${fmt.format(r.atual)} ${r.unidade}`);
+        tip.append('div').text(`Limite da meta: ${fmt.format(r.limite)} ${r.unidade}`);
+        tip.append('div').text(`${fmt.format(r.vezes)}× o limite`);
+        const tw = tip.node().offsetWidth || 160;
+        tip.style('left', Math.max(0, Math.min(mx + 12, el.clientWidth - tw)) + 'px').style('top', (my + 14) + 'px').style('opacity', 1);
+      })
+      .on('pointerleave', () => tip.style('opacity', 0));
+    bars.append('text').attr('x', (r) => x(r.vezes) + 6).attr('y', 40).attr('fill', 'var(--color-fg)')
+      .style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums').style('font-weight', 600)
+      .text((r) => fmt.format(r.vezes) + '×');
+    svg.append('line').attr('x1', x(1)).attr('x2', x(1)).attr('y1', top).attr('y2', yEnd)
+      .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-width', 1.5).attr('stroke-dasharray', '4 3');
+  });
+
+  const P = ['Alta', 'Média', 'Baixa'];
+  const I = ['Baixo', 'Médio', 'Alto'];
+  const CRIT = { 'Baixo': { 'Baixa': 'Baixa', 'Média': 'Baixa', 'Alta': 'Média' }, 'Médio': { 'Baixa': 'Baixa', 'Média': 'Média', 'Alta': 'Alta' }, 'Alto': { 'Baixa': 'Média', 'Média': 'Alta', 'Alta': 'Alta' } };
+  dash.draw('matrix', (el) => {
+    const rows = state(el, 'riscos');
+    if (!rows) return;
+    el.replaceChildren();
+    const add = (cls, text) => { const d = document.createElement('div'); d.className = cls; if (text != null) d.textContent = text; el.appendChild(d); return d; };
+    P.forEach((p) => {
+      add('ax y', p);
+      I.forEach((imp) => {
+        const lvl = CRIT[imp][p];
+        const c = add('c ' + lvl);
+        const lv = document.createElement('span'); lv.className = 'lv'; lv.textContent = lvl; c.appendChild(lv);
+        const rs = document.createElement('div'); rs.className = 'rs'; c.appendChild(rs);
+        rows.filter((r) => r.prob === p && r.impacto === imp).forEach((r) => {
+          const s = document.createElement('span'); s.className = 'r'; s.textContent = r.id; rs.appendChild(s);
+        });
+      });
+    });
+    add('ax', '');
+    I.forEach((imp) => add('ax', imp));
+  });
+
+  const tableRows = (el, id, cols, keyed) => {
+    const d = dash.data(id);
+    el.replaceChildren();
+    if (d.status !== 'ok') return;
+    d.data.forEach((r) => {
+      const tr = document.createElement('tr');
+      if (keyed) tr.dataset.key = r.id;
+      cols.forEach((c) => {
+        const td = document.createElement('td');
+        td.textContent = String(r[c] ?? '');
+        if (c === 'id') td.className = 'k';
+        if (c === 'crit') td.className = 'cr-' + r.crit;
+        tr.appendChild(td);
+      });
+      el.appendChild(tr);
+    });
+  };
+  dash.draw('riskrows', (el) => tableRows(el, 'riscos', ['id', 'risco', 'prob', 'impacto', 'crit', 'controle', 'politica'], true));
+  dash.draw('relrows', (el) => tableRows(el, 'indicadores', ['id', 'indicador', 'pdti', 'psi', 'risco', 'acordo', 'calculo'], true));
+
+
+  dash.draw('gantt', (el) => {
+    const rows0 = state(el, 'cronograma');
+    if (!rows0) return;
+    el.replaceChildren();
+    const rows = rows0.slice().sort((a, b) => a.ordem - b.ordem);
+    const groups = [...new Set(rows.map((r) => r.iniciativa))];
+    const W = Math.max(260, el.clientWidth || 400);
+    const rowH = 36, gapG = 22, top = 22, axisH = 24, right = 8;
+    let y = top; const pos = []; let last = null;
+    rows.forEach((r) => { if (r.iniciativa !== last) { if (last !== null) y += gapG; pos.push({ head: r.iniciativa, y }); y += 18; last = r.iniciativa; } pos.push({ r, y }); y += rowH; });
+    const Hh = y + axisH;
+    const x = d3.scaleLinear([0.5, 12.5], [0, W - right]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${Hh}`).attr('role', 'img')
+      .attr('aria-label', 'Cronograma das iniciativas do PDTI em 12 meses');
+    const months = d3.range(1, 13);
+    const step = W < 420 ? 2 : 1;
+    svg.append('g').selectAll('line').data(months).join('line').attr('x1', (m) => x(m - 0.5)).attr('x2', (m) => x(m - 0.5))
+      .attr('y1', top - 6).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(months.filter((m) => (m - 1) % step === 0)).join('text')
+      .attr('x', (m) => x(m)).attr('y', y + 16).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)')
+      .style('font-size', 'var(--cds-font-size-caption)').text((m) => 'M' + m);
+    svg.append('line').attr('x1', 0).attr('x2', W - right).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-axis)');
+    const tip = d3.select(el).append('div').attr('class', 'gv-tip').style('opacity', 0);
+    const color = (r) => r.origem !== 'PDTI Quadro 7' ? 'var(--cds-chart-status-critical)' : dash.colors[groups.indexOf(r.iniciativa) % dash.colors.length];
+    pos.forEach((p) => {
+      if (p.head) {
+        svg.append('text').attr('x', 0).attr('y', p.y + 10).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
+          .style('font-weight', 600).text(p.head);
+        return;
+      }
+      const r = p.r;
+      svg.append('text').attr('x', 0).attr('y', p.y + 11).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(r.atividade);
+      svg.append('rect').attr('x', x(Number(r.inicio) - 0.5) + 1).attr('y', p.y + 16).attr('height', 14).attr('rx', 3)
+        .attr('width', Math.max(4, x(Number(r.fim) + 0.5) - x(Number(r.inicio) - 0.5) - 2)).attr('fill', color(r))
+        .on('pointermove', (ev) => {
+          const [mx, my] = d3.pointer(ev, el);
+          tip.replaceChildren();
+          tip.append('div').attr('class', 't').text(r.iniciativa);
+          tip.append('div').text(r.atividade);
+          tip.append('div').text(Number(r.inicio) === Number(r.fim) ? `M${r.inicio}` : `M${r.inicio} a M${r.fim}`);
+          tip.append('div').attr('class', 't').text(r.origem);
+          const tw = tip.node().offsetWidth || 160;
+          tip.style('left', Math.max(0, Math.min(mx + 12, el.clientWidth - tw)) + 'px').style('top', (my + 14) + 'px').style('opacity', 1);
+        })
+        .on('pointerleave', () => tip.style('opacity', 0));
+    });
+  });
+
+  dash.draw('decisions', (el) => {
+    const rows = state(el, 'decisoes');
+    if (!rows) return;
+    el.replaceChildren();
+    rows.slice().sort((a, b) => a.prioridade - b.prioridade).forEach((r) => {
+      const card = document.createElement('article'); card.className = 'd';
+      const n = document.createElement('div'); n.className = 'n'; n.textContent = String(r.prioridade); card.appendChild(n);
+      const h = document.createElement('h3'); h.textContent = r.decisao; card.appendChild(h);
+      const line = (label, text, cls) => {
+        const p = document.createElement('p'); if (cls) p.className = cls;
+        const l = document.createElement('span'); l.className = 'l'; l.textContent = label + ': ';
+        p.appendChild(l); p.appendChild(document.createTextNode(text)); card.appendChild(p);
+      };
+      line('Base', r.base);
+      line('Ação', r.acao);
+      line('Responsável', r.responsavel);
+      line('Prazo', r.prazo);
+      line('Evidência', r.evidencia, 'ev');
+      el.appendChild(card);
+    });
+  });
+})();
+</script>
+
+</div>
+</body>
+</html>
