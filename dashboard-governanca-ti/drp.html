@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRP — Plano de Recuperação de Desastres · Prefeitura de Boa Esperança</title>
+<meta name="description" content="Plano de Recuperação de Desastres (DRP) da Prefeitura de Boa Esperança: RTO, RPO, backup 3-2-1, ativação, procedimentos e testes.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6db3'/%3E%3Crect x='7' y='17' width='4' height='8' rx='1' fill='white'/%3E%3Crect x='14' y='11' width='4' height='14' rx='1' fill='white'/%3E%3Crect x='21' y='6' width='4' height='19' rx='1' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<style>
+:root{
+ --font-anthropic-sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ --font-anthropic-serif:"Source Serif 4",Georgia,serif;
+ --color-fg:#1f1e1c;--color-fg-muted:#68655e;--color-bg:#f7f6f2;--color-panel:#ffffff;--color-border-line:#e4e1d8;
+ --color-ok:#2a7a4b;--color-warn:#a05f06;--color-bad:#bf3a2b;
+ --cds-font-size-caption:.8125rem;--cds-font-size-body:.96875rem;--cds-font-size-heading:1.0625rem;--cds-font-size-title:clamp(1.6rem,3.2vw,2.25rem);
+ --cds-font-weight-medium:600;
+ --cds-gap-xs:.25rem;--cds-gap-sm:.5rem;--cds-gap-md:1rem;--cds-gap-lg:1.5rem;--cds-gap-xl:2.5rem;
+ --cds-pad-xs:.3rem;--cds-pad-sm:.55rem;--cds-pad-md:.9rem;--cds-pad-lg:1.15rem;--cds-pad-xl:1.75rem;
+ --cds-radius:8px;
+ --cds-chart-grid:#ebe8e0;--cds-chart-axis:#bdb9ae;--cds-chart-reference:#55524b;--cds-chart-muted:#c9c5bb;--cds-chart-status-critical:#c8432f;--cds-chart-categorical-1:#2f6db3;
+ --cds-surface-popover:#ffffff;--cds-border:#dcd8cd;--cds-shadow-popover:0 6px 20px rgba(0,0,0,.12);--cds-text-secondary:#68655e;
+ --cds-dur-slow:.4s;--cds-ease-out:cubic-bezier(.2,.8,.2,1);
+ color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{
+ --color-fg:#ecebe6;--color-fg-muted:#a3a098;--color-bg:#181816;--color-panel:#22211f;--color-border-line:#383632;
+ --color-ok:#62c48a;--color-warn:#e3a94b;--color-bad:#f0705f;
+ --cds-chart-grid:#302e2b;--cds-chart-axis:#55524b;--cds-chart-reference:#d6d3cb;--cds-chart-muted:#4a4743;--cds-chart-status-critical:#ef6a55;--cds-chart-categorical-1:#6a9fe0;
+ --cds-surface-popover:#2a2926;--cds-border:#45423d;--cds-shadow-popover:0 6px 20px rgba(0,0,0,.45);--cds-text-secondary:#a3a098;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(--font-anthropic-sans);-webkit-font-smoothing:antialiased}
+
+.doc{max-width:860px;margin-inline:auto;padding:clamp(1rem,4vw,2.75rem) clamp(1rem,4vw,2rem) 3rem;line-height:1.6;font-size:1rem}
+.doc h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);line-height:1.2;margin:0 0 .4rem}
+.doc .byline{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);margin:0 0 2rem}
+.doc a{color:var(--cds-chart-categorical-1)}
+.doc h2{font-size:1.2rem;font-weight:600;margin:2.4rem 0 .6rem;padding-top:1rem;border-top:1px solid var(--color-border-line)}
+.doc p{margin:.6rem 0}
+.doc .tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-panel)}
+.doc table{border-collapse:collapse;width:100%;font-size:var(--cds-font-size-caption);line-height:1.45}
+.doc th{text-align:left;color:var(--color-fg-muted);font-weight:600;padding:.55rem .7rem;border-bottom:1px solid var(--color-border-line);vertical-align:bottom}
+.doc td{padding:.55rem .7rem;border-bottom:1px solid var(--color-border-line);vertical-align:top}
+.doc tr:last-child td{border-bottom:0}
+.doc ol,.doc ul{padding-left:1.4rem}
+.doc li{margin:.25rem 0}
+.flow{list-style:none;padding:0!important;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:.6rem;margin:1.2rem 0}
+.flow li{display:flex;gap:.55rem;align-items:flex-start;background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:.6rem .7rem;margin:0}
+.flow li.key{border-color:var(--cds-chart-status-critical)}
+.flow .num{flex:none;width:1.5rem;height:1.5rem;border-radius:50%;border:1px solid var(--color-border-line);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--color-fg-muted)}
+.flow li.key .num{border-color:var(--cds-chart-status-critical);color:var(--cds-chart-status-critical);font-weight:600}
+.flow b{display:block;font-size:.9rem;line-height:1.25}
+.flow small{display:block;font-size:.78rem;line-height:1.3}
+.flow em{display:block;font-style:normal;font-size:.75rem;color:var(--color-fg-muted)}
+</style>
+</head>
+<body>
+<main class="doc">
+<h1>DRP — Plano de Recuperação de Desastres</h1>
+<p class="byline">Prefeitura de Boa Esperança · Versão 1.0 · Outubro de 2026 · <a href="./">Voltar ao dashboard</a></p>
+
+<h2>1. Identificação e escopo</h2>
+<p>Este DRP garante que o Prontuário Eletrônico e o Portal Institucional voltem a funcionar em até 4 horas após um desastre, sem perder mais dados do que o limite definido para cada serviço. Ele cumpre a exigência de continuidade da PSI (§5) e executa a iniciativa I1 e a parte de recuperação da I3 do PDTI 2026–2027.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Registro</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Organização</td>
+<td>Prefeitura Municipal de Boa Esperança</td>
+</tr>
+<tr>
+<td>Documento</td>
+<td>Plano de Recuperação de Desastres (DRP), versão 1.0</td>
+</tr>
+<tr>
+<td>Vigência</td>
+<td>2026–2027, revisão anual</td>
+</tr>
+<tr>
+<td>Aprovação</td>
+<td>Comitê de TI e Gabinete do Prefeito</td>
+</tr>
+<tr>
+<td>Coordenação</td>
+<td>Gestão de TI</td>
+</tr>
+<tr>
+<td>Base</td>
+<td>PDTI (O1, O3, I1, I3, §5.3), PSI (§5 e §6) e o modelo de SLA/OLA do grupo (Sávio, Fábio e Antônio)</td>
+</tr>
+<tr>
+<td>Riscos tratados</td>
+<td>R1, R2, R6 e R7 da matriz de riscos do PDTI</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Escopo.</strong> O plano cobre os serviços críticos da Prefeitura, os dados que eles guardam e a infraestrutura de que dependem: servidores, banco de dados, rede das UBS, DNS, link de internet e o repositório de backups. Falhas pequenas, resolvidas dentro da operação normal da Central de Chamados, seguem o fluxo de SLA e OLA e não acionam este plano.</p>
+<p><strong>Desastre</strong>, para este plano, é qualquer evento que deixe um serviço crítico fora do ar por mais de 1 hora ou que cause perda ou corrupção de dados.</p>
+<h2>2. Serviços críticos, RTO e RPO</h2>
+<p>O Prontuário e o Portal têm a mesma meta de tempo (RTO de 4 h), igual ao SLA de restabelecimento para incidentes de alto impacto. O Prontuário tem a menor tolerância a perda de dados (RPO de 1 h) porque registra atendimentos de saúde em tempo real.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Serviço</th>
+<th>Criticidade</th>
+<th>RTO (tempo máximo para voltar)</th>
+<th>RPO (perda máxima de dados)</th>
+<th>Contingência enquanto está fora</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prontuário Eletrônico</td>
+<td>Alta</td>
+<td>4 h</td>
+<td>1 h</td>
+<td>Ficha de atendimento em papel nas UBS, digitada após o retorno</td>
+</tr>
+<tr>
+<td>Portal Institucional</td>
+<td>Alta</td>
+<td>4 h</td>
+<td>24 h</td>
+<td>Página estática de aviso com telefones e serviços presenciais</td>
+</tr>
+<tr>
+<td>Sistemas administrativos (protocolo, tributos, folha)</td>
+<td>Média</td>
+<td>8 h</td>
+<td>24 h</td>
+<td>Atendimento presencial com registro manual</td>
+</tr>
+<tr>
+<td>Central de Chamados</td>
+<td>Média</td>
+<td>8 h</td>
+<td>24 h</td>
+<td>Abertura de chamados por telefone e planilha compartilhada</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>RTO</strong> é contado a partir da declaração do desastre. <strong>RPO</strong> é garantido pela rotina de backup da Seção 5: cópia do log do banco a cada hora para o Prontuário e cópia diária para os demais serviços.</p>
+<h2>3. Papéis e responsabilidades</h2>
+<p>O Gestor de TI é o único que declara o desastre e encerra o plano. Cada papel tem um substituto, para que o plano funcione fora do horário ou em férias.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Papel</th>
+<th>Quem</th>
+<th>Responsabilidade no desastre</th>
+<th>Substituto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coordenador do DRP</td>
+<td>Gestor de TI</td>
+<td>Declara o desastre, decide a estratégia de recuperação e encerra o plano</td>
+<td>Coordenador de Sistemas e Infraestrutura</td>
+</tr>
+<tr>
+<td>Equipe de Infraestrutura</td>
+<td>Equipe de Infraestrutura de TI</td>
+<td>Recupera servidores, rede, armazenamento e backups</td>
+<td>Técnico de plantão</td>
+</tr>
+<tr>
+<td>Equipe de Sistemas</td>
+<td>Equipe de Sistemas</td>
+<td>Restaura banco de dados e aplicações e valida a integridade dos dados</td>
+<td>Analista de sistemas designado</td>
+</tr>
+<tr>
+<td>Primeiro atendimento (N1)</td>
+<td>Service Desk</td>
+<td>Registra o incidente, faz a triagem e escala ao N2 em até 30 min (OLA)</td>
+<td>Atendente de plantão</td>
+</tr>
+<tr>
+<td>Comunicação</td>
+<td>Assessoria de Comunicação</td>
+<td>Publica avisos ao cidadão e às secretarias</td>
+<td>Chefe de Gabinete</td>
+</tr>
+<tr>
+<td>Prestador do portal</td>
+<td>Empresa contratada de hospedagem</td>
+<td>Restabelece o portal dentro do SLA contratual</td>
+<td>Contato de escalonamento do contrato</td>
+</tr>
+<tr>
+<td>Instância de decisão</td>
+<td>Comitê de TI</td>
+<td>Aprova gastos emergenciais e recebe o relatório pós-incidente</td>
+<td>Gabinete do Prefeito</td>
+</tr>
+</tbody>
+</table></div>
+<p>A lista de contatos (telefone, e-mail e horário) é mantida pela Gestão de TI em cópia impressa e digital fora dos servidores da Prefeitura, e revisada a cada trimestre.</p>
+<h2>4. Cenários de desastre</h2>
+<p>O plano cobre seis cenários. Ransomware e falha do servidor do Prontuário são os mais graves, porque juntam parada do atendimento de saúde e risco de perda de dados.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Cenário</th>
+<th>Serviços afetados</th>
+<th>Resposta principal</th>
+<th>Riscos do PDTI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ataque de ransomware</td>
+<td>Todos</td>
+<td>Isolar a rede, não pagar resgate, restaurar a partir da cópia offsite imutável</td>
+<td>R6, R7, R8</td>
+</tr>
+<tr>
+<td>Falha de hardware do servidor do Prontuário</td>
+<td>Prontuário</td>
+<td>Restaurar a VM em host secundário a partir do último backup e aplicar os logs</td>
+<td>R3, R5, R7</td>
+</tr>
+<tr>
+<td>Corrupção ou exclusão do banco de dados</td>
+<td>Prontuário, sistemas administrativos</td>
+<td>Restaurar até o ponto anterior ao erro (recuperação por log)</td>
+<td>R6, R7</td>
+</tr>
+<tr>
+<td>Indisponibilidade do prestador do portal</td>
+<td>Portal</td>
+<td>Acionar o SLA do contrato; publicar página de aviso; restaurar em hospedagem alternativa se passar de 4 h</td>
+<td>R1, R2</td>
+</tr>
+<tr>
+<td>Queda de energia ou de link</td>
+<td>Prontuário nas UBS, Portal</td>
+<td>Ativar link secundário e nobreak; UBS passam para a ficha em papel</td>
+<td>R5</td>
+</tr>
+<tr>
+<td>Erro humano (exclusão ou configuração errada)</td>
+<td>Qualquer serviço</td>
+<td>Restaurar arquivos ou configuração do backup e registrar a mudança</td>
+<td>R4, R6</td>
+</tr>
+</tbody>
+</table></div>
+<h2>5. Estratégia de backup (regra 3-2-1)</h2>
+<p>Todo dado crítico tem 3 cópias, em 2 mídias diferentes, com 1 cópia fora da sede e imutável. A rotina é 100% automatizada e avisa a equipe a cada execução, substituindo as etapas manuais apontadas no diagnóstico do PDTI (§2.3).</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Dado</th>
+<th>Frequência</th>
+<th>Retenção</th>
+<th>Onde ficam as cópias</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Banco do Prontuário</td>
+<td>Completo diário às 23 h; log a cada 1 h</td>
+<td>30 diários e 12 mensais</td>
+<td>Produção, servidor de backup local e nuvem imutável</td>
+</tr>
+<tr>
+<td>Portal (arquivos e banco)</td>
+<td>Completo diário</td>
+<td>30 diários e 12 mensais</td>
+<td>Prestador, servidor de backup local e nuvem</td>
+</tr>
+<tr>
+<td>Sistemas administrativos</td>
+<td>Completo diário; incremental a cada 6 h no horário de expediente</td>
+<td>30 diários e 12 mensais</td>
+<td>Produção, servidor de backup local e nuvem imutável</td>
+</tr>
+<tr>
+<td>Configurações (firewall, switches, servidores)</td>
+<td>Após cada mudança e semanal</td>
+<td>12 versões</td>
+<td>Repositório de configuração e nuvem</td>
+</tr>
+</tbody>
+</table></div>
+<p>Regras de proteção, conforme a PSI (§3 e §4):</p>
+<ul>
+<li>Backups criptografados em trânsito e em repouso; a chave fica fora do ambiente de backup.</li>
+<li>Acesso ao repositório apenas para a Equipe de Infraestrutura, com registro de cada acesso.</li>
+<li>A cópia em nuvem não pode ser apagada nem alterada durante o período de retenção, o que protege contra ransomware.</li>
+<li>Falha em qualquer execução gera alerta imediato e chamado automático na Central de Chamados.</li>
+</ul>
+<h2>6. Ativação do plano</h2>
+<p>O plano entra em ação pelo mesmo caminho de qualquer chamado: o N1 faz a triagem em até 30 minutos (OLA) e, se o incidente for um desastre, o Gestor de TI declara o DRP e o relógio do RTO começa a contar.</p>
+<ol class="flow"><li class=""><span class="num">1</span><div><b>Detectar</b><small>alerta ou chamado</small><em>PSI: Perceber</em></div></li><li class=""><span class="num">2</span><div><b>Triagem N1 → N2</b><small>até 30 min (OLA)</small><em>PSI: Perceber</em></div></li><li class=""><span class="num">3</span><div><b>Declarar desastre</b><small>parada acima de 1 h ou perda de dados</small><em>PSI: Preservar</em></div></li><li class=""><span class="num">4</span><div><b>Comunicar</b><small>1º aviso em até 1 h</small><em>PSI: Comunicar</em></div></li><li class="key"><span class="num">5</span><div><b>Recuperar</b><small>até o RTO do serviço</small><em>PSI: Tratar</em></div></li><li class=""><span class="num">6</span><div><b>Validar</b><small>teste com usuário real</small><em>PSI: Tratar</em></div></li><li class=""><span class="num">7</span><div><b>Encerrar e aprender</b><small>relatório em até 5 dias úteis</small><em>PSI: Aprender</em></div></li></ol>
+<p>Se a validação falhar, a equipe volta à recuperação; a contingência de cada serviço (Seção 2) fica ativa até o encerramento.</p>
+<h2>7. Procedimentos de recuperação por serviço</h2>
+<p>Cada procedimento termina com uma validação feita por um usuário real do serviço; sem ela, o serviço não é dado como recuperado.</p>
+<p><strong>Prontuário Eletrônico (RTO 4 h, RPO 1 h)</strong></p>
+<ol>
+<li>Avisar as UBS para passarem à ficha de atendimento em papel.</li>
+<li>Identificar o último backup íntegro e o último log de banco disponível.</li>
+<li>Restaurar a VM do servidor de aplicação no host secundário.</li>
+<li>Restaurar o banco a partir do backup completo e aplicar os logs até o ponto anterior à falha.</li>
+<li>Conferir a integridade do banco e a contagem de registros do dia.</li>
+<li>Liberar o acesso a uma UBS piloto e confirmar consulta e gravação de um atendimento.</li>
+<li>Liberar todas as UBS e digitar as fichas em papel.</li>
+</ol>
+<p><strong>Portal Institucional (RTO 4 h, RPO 24 h)</strong></p>
+<ol>
+<li>Publicar a página estática de aviso pelo DNS.</li>
+<li>Acionar o prestador pelo canal de escalonamento do contrato e registrar o horário.</li>
+<li>Se o prestador não restabelecer em 2 h, restaurar o último backup diário em hospedagem alternativa.</li>
+<li>Testar a página inicial, a transparência e os serviços ao cidadão.</li>
+<li>Retornar o DNS ao endereço oficial e retirar a página de aviso.</li>
+</ol>
+<p><strong>Sistemas administrativos (RTO 8 h, RPO 24 h)</strong></p>
+<ol>
+<li>Restaurar servidores e bancos a partir do último backup completo e do último incremental.</li>
+<li>Validar com um usuário de cada secretaria (protocolo, tributos e folha).</li>
+<li>Lançar no sistema os registros feitos à mão durante a parada.</li>
+</ol>
+<p><strong>Ransomware (todos os serviços)</strong></p>
+<ol>
+<li>Desconectar da rede as máquinas e servidores afetados, sem desligá-los, para preservar evidências (PSI §5).</li>
+<li>Bloquear contas suspeitas e trocar as senhas administrativas.</li>
+<li>Restaurar somente a partir da cópia em nuvem imutável, em ambiente limpo.</li>
+<li>Seguir a ordem de prioridade: Prontuário, Portal, sistemas administrativos.</li>
+<li>Comunicar o incidente ao encarregado de dados para avaliação de notificação à ANPD (LGPD).</li>
+</ol>
+<h2>8. Comunicação durante o desastre</h2>
+<p>O primeiro aviso sai em até 1 hora da declaração do desastre, e a partir daí há atualização a cada 2 horas até o encerramento.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Público</th>
+<th>Quem comunica</th>
+<th>Quando</th>
+<th>Canal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Comitê de TI e Gabinete</td>
+<td>Gestor de TI</td>
+<td>Na declaração e no encerramento</td>
+<td>Telefone e e-mail</td>
+</tr>
+<tr>
+<td>Secretarias e UBS</td>
+<td>Service Desk</td>
+<td>Até 1 h após a declaração; depois a cada 2 h</td>
+<td>Telefone, grupo oficial de mensagens e e-mail</td>
+</tr>
+<tr>
+<td>Cidadãos</td>
+<td>Assessoria de Comunicação</td>
+<td>Até 1 h após a declaração</td>
+<td>Página de aviso do portal e redes sociais oficiais</td>
+</tr>
+<tr>
+<td>Prestador do portal</td>
+<td>Gestor de TI</td>
+<td>Imediatamente, no cenário do portal</td>
+<td>Canal de escalonamento do contrato</td>
+</tr>
+<tr>
+<td>Encarregado de dados (LGPD)</td>
+<td>Gestor de TI</td>
+<td>Sempre que houver exposição ou perda de dados pessoais</td>
+<td>E-mail formal com registro</td>
+</tr>
+</tbody>
+</table></div>
+<p>Todo aviso diz o que parou, o que continua funcionando, a contingência disponível e a previsão de retorno.</p>
+<h2>9. Testes, indicadores e revisão</h2>
+<p>O plano só vale se for testado: a restauração de backup é testada todo mês, como exige a PSI, e a recuperação completa é ensaiada uma vez por ano.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Teste</th>
+<th>Frequência</th>
+<th>O que comprova</th>
+<th>Evidência</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Restauração de backup</td>
+<td>Mensal</td>
+<td>As cópias voltam íntegras e dentro do RPO</td>
+<td>Ata com data, dados restaurados, tempo gasto e resultado</td>
+</tr>
+<tr>
+<td>Simulação de mesa</td>
+<td>Semestral</td>
+<td>Papéis, contatos e comunicação funcionam</td>
+<td>Ata e lista de ajustes no plano</td>
+</tr>
+<tr>
+<td>Recuperação completa do Prontuário em ambiente isolado</td>
+<td>Anual</td>
+<td>O RTO de 4 h é alcançável</td>
+<td>Relatório com o tempo de cada etapa</td>
+</tr>
+<tr>
+<td>Contingência do Portal (página de aviso e hospedagem alternativa)</td>
+<td>Anual</td>
+<td>O portal volta em até 4 h sem o prestador</td>
+<td>Relatório do teste e registro do DNS</td>
+</tr>
+</tbody>
+</table></div>
+<p>Indicadores acompanhados no <a href="./">Dashboard de Governança de TI</a>:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Indicador</th>
+<th>Meta</th>
+<th>Acordo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Disponibilidade mensal do portal</td>
+<td>≥ 99%</td>
+<td>SLA</td>
+</tr>
+<tr>
+<td>Tempo médio de restauração após desastre</td>
+<td>≤ 4 h</td>
+<td>SLA e DRP</td>
+</tr>
+<tr>
+<td>Chamados resolvidos dentro do prazo</td>
+<td>≥ 85%</td>
+<td>SLA</td>
+</tr>
+<tr>
+<td>Triagem do N1 para o N2 em incidente crítico</td>
+<td>≤ 30 min</td>
+<td>OLA</td>
+</tr>
+<tr>
+<td>Testes de restauração realizados</td>
+<td>100% dos previstos</td>
+<td>DRP e PSI</td>
+</tr>
+<tr>
+<td>Execuções de backup concluídas com sucesso</td>
+<td>≥ 98%</td>
+<td>DRP</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Revisão.</strong> O Comitê de TI revisa este plano uma vez por ano e também depois de cada ativação, de cada teste com falha e de qualquer mudança de infraestrutura ou de contrato do portal. Após cada ativação, a Gestão de TI entrega um relatório pós-incidente em até 5 dias úteis, com causa, tempos alcançados e melhorias.</p>
+<p><strong>Aprovação.</strong> Gabinete do Prefeito (aprovação executiva) e Comitê de TI (aprovação técnica).</p>
+</main>
+</body>
+</html>
